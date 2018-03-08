@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My chat-bubble Project</title>
+
+    <!-- stylesheets are conveniently separated into components -->
+    <link rel="stylesheet" media="all" href="./component/styles/setup.css">
+    <link rel="stylesheet" media="all" href="./component/styles/says.css">
+    <link rel="stylesheet" media="all" href="./component/styles/reply.css">
+    <link rel="stylesheet" media="all" href="./component/styles/typing.css">
+    <link rel="stylesheet" media="all" href="./component/styles/input.css">
+    <style>
+        .bubble-container .input-wrap textarea {
+            margin: 0;
+            width: calc(100% - 30px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- container element for chat window -->
+    <div id="chat"></div>
+
+    <!-- import the JavaScript file -->
+    <script src="./component/Bubbles.js"></script>
+    <script>
+        /************************************************************************/
+        /**************** add "SAMPLE IMPLEMENTATION" code here *****************/
+        /************************************************************************/
+        const unsureConvoFunc = ({ input, convo, standingAnswer }) => { 
+            return {
+                "unsure": {
+                    "says": ["เอ้ย?"].concat(convo["ice"].says)
+                    , "reply": convo["ice"].reply
+                }
+            }
+        }
+
+        window["exampleCustomAnswerFunc"] = () => {
+            alert("ทดสอบแช็ตบอทพัฒนาจาก Chat Bubble.");
+        }
+
+        // initialize by constructing a named function...
+        const abdul = new Bubbles(
+            document.getElementById('chat'), // ...passing HTML container element...
+            "abdul", // ...and name of the function as a parameter
+            {
+                "inputCallbackFn": function (o) {
+                    const { input, convo, standingAnswer } = o
+                    if (input === "อับดุล") {
+                        if (standingAnswer === "end") {
+                            abdul.talk(convo, "ice")
+                            return
+                        } else {
+                            abdul.reply({ "says": ["เอ้ย!"], "reply": [ { "question": "เกี่ยวกับ", "answer": "exampleCustomAnswerFunc" } ] })
+                            return
+                        }
+                    } else if (input === "เกี่ยวกับ") {
+                        window["exampleCustomAnswerFunc"]()
+                        return
+                    }
+
+                    if (standingAnswer === "ice" || standingAnswer === "unsure") {
+                        if (input.toLowerCase() === "arcgis") {
+                            abdul.talk(convo, "answer-arcgis")
+                        } else {
+                            abdul.talk(unsureConvoFunc(o), "unsure")
+                        }
+                    } else if (standingAnswer.startsWith("answer")) {
+                        if (input === "ใช่" || input.startsWith("ถาม") || input.startsWith("จัดไป")) {
+                            abdul.talk(convo, "ice")
+                        } else {
+                            abdul.talk(convo, "end")
+                        }
+                    } else {
+                        abdul.talk(unsureConvoFunc(o), "unsure")
+                    }
+
+                }
+            }
+        )
+
+        // `.talk()` will get your bot to begin the conversation
+        abdul.talk(
+            // pass your JSON/JavaScript object to `.talk()` function where
+            // you define how the conversation between the bot and user will go
+            {
+                // "ice" (as in "breaking the ice") is a required conversation object
+                // that maps the first thing the bot will say to the user
+                "ice": {
+
+                    // "says" defines an array of sequential bubbles
+                    // that the bot will produce
+                    "says": ["ถามอะไรตอบได้!", "ถามว่า?"]
+
+                    // "reply" is an array of possible options the user can pick from
+                    // as a reply
+                    , "reply": [
+                        {
+                            "question": "ArcGIS" // label for the reply option
+                            , "answer": "answer-arcgis"  // key for the next conversation object
+                        }
+                    ]
+                } // end required "ice" conversation object
+
+                , "answer-arcgis": {
+                    "says": ["ArcGIS is a geographic information system (GIS) for working with maps and geographic information.", "ต้องการถามต่อไหม?"]
+                    , "reply": [
+                        {
+                            "question": "ใช่"
+                            , "answer": "ice"
+                        },
+                        {
+                            "question": "ไม่"
+                            , "answer": "end"
+                        }
+                    ]
+                }
+                , "end": {
+                    "says": ["ถ้าต้องการถามต่อ เรียกอับดุล!"]
+                }
+            } // end conversation object
+        )
+
+    </script>
+
+</body>
+
+</html>
